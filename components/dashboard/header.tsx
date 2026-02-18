@@ -1,6 +1,7 @@
 'use client'
 
 import { Bell, LogOut, Settings, Sun, Moon } from 'lucide-react'
+import { UserButton } from '@clerk/nextjs'
 import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 
@@ -55,31 +56,12 @@ export function Header({ title, description }: HeaderProps) {
             </button>
           )}
 
-          {/* Profile Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg hover:bg-secondary transition-colors"
-            >
-              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-                J
-              </div>
-            </button>
-
-            {/* Dropdown Menu */}
-            {isOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-1 z-10">
-                <button className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-secondary flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  Settings
-                </button>
-                <button className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-secondary flex items-center gap-2 border-t border-border">
-                  <LogOut className="w-4 h-4" />
-                  Log Out
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Clerk User Button */}
+          <UserButton
+            afterSignOutUrl="/"
+            userProfileMode="navigation"
+            userProfileUrl="/user-profile"
+          />
         </div>
       </div>
     </header>

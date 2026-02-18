@@ -1,14 +1,58 @@
+'use client'
+
 import { Header } from '@/components/dashboard/header'
 import { KPICard } from '@/components/dashboard/kpi-card'
 import { RecentActivity } from '@/components/dashboard/recent-activity'
-import { Users, FileText, Video } from 'lucide-react'
+import { Users, FileText, Video, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+
+interface DashboardStats {
+  stats: {
+    totalApplications: number
+    shortlisted: number
+    interviews: number
+  }
+  recentActivity: any[]
+}
 
 export default function DashboardPage() {
+  const [data, setData] = useState<DashboardStats | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/dashboard/stats')
+        const result = await response.json()
+        if (result.success) {
+          setData(result.data)
+        } else {
+          toast.error('Failed to load dashboard stats')
+        }
+      } catch (error) {
+        toast.error('Failed to load dashboard stats')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchStats()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
   return (
     <>
       <Header
         title="Dashboard"
-        description="Welcome back to your hiring dashboard"
+        description="Welcome to your HelpeR dashboard"
       />
       <main className="p-6 md:p-8">
         <div className="space-y-8">
@@ -17,27 +61,26 @@ export default function DashboardPage() {
             <KPICard
               icon={Users}
               label="Total Applications"
-              value="1,243"
-              change="12.5% from last month"
-              trend="up"
+              value={data?.stats.totalApplications.toString() || '0'}
+              change="All time"
             />
             <KPICard
               icon={FileText}
               label="Shortlisted"
-              value="128"
-              change="8% from last month"
+              value={data?.stats.shortlisted.toString() || '0'}
+              change="Candidates ready"
               trend="up"
             />
             <KPICard
               icon={Video}
               label="Interviews Scheduled"
-              value="24"
-              change="5 this week"
+              value={data?.stats.interviews.toString() || '0'}
+              change="Upcoming"
             />
           </div>
 
           {/* Recent Activity */}
-          <RecentActivity />
+          <RecentActivity activities={data?.recentActivity} />
         </div>
       </main>
     </>

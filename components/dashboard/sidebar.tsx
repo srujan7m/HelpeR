@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Briefcase, Users, Video, Settings, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Briefcase, Users, Video, Settings, Menu, X, Calendar } from 'lucide-react'
+import { SignOutButton } from '@clerk/nextjs'
 import { useState } from 'react'
 
 const menuItems = [
@@ -10,6 +11,7 @@ const menuItems = [
   { icon: Briefcase, label: 'Jobs', href: '/dashboard/jobs' },
   { icon: Users, label: 'Applications', href: '/dashboard/applications' },
   { icon: Video, label: 'Interviews', href: '/dashboard/interviews' },
+  { icon: Calendar, label: 'Meetings', href: '/dashboard/meetings' },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ]
 
@@ -18,10 +20,9 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
 
   const isActive = (href: string) => {
-    if (href === '/dashboard') {
-      return pathname === '/dashboard'
-    }
-    return pathname.startsWith(href)
+    if (href === '/dashboard' && pathname === '/dashboard') return true
+    if (href !== '/dashboard' && pathname.startsWith(href)) return true
+    return false
   }
 
   return (
@@ -36,9 +37,8 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border transition-all duration-300 z-30 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border transition-all duration-300 z-30 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         <div className="h-full flex flex-col p-6">
           {/* Logo */}
@@ -56,11 +56,10 @@ export function Sidebar() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${
-                    active
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${active
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="hidden md:inline">{item.label}</span>
@@ -71,9 +70,11 @@ export function Sidebar() {
 
           {/* Footer */}
           <div className="pt-6 border-t border-border">
-            <button className="w-full px-4 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-secondary transition-colors">
-              Log Out
-            </button>
+            <SignOutButton>
+              <button className="w-full px-4 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-secondary transition-colors flex items-center gap-2">
+                Log Out
+              </button>
+            </SignOutButton>
           </div>
         </div>
       </aside>

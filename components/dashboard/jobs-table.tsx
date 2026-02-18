@@ -1,37 +1,83 @@
-import { MoreHorizontal } from 'lucide-react'
+'use client'
 
-const jobs = [
-  {
-    id: 1,
-    title: 'Senior Software Engineer',
-    created: 'Feb 10, 2024',
-    applications: 34,
-    status: 'Active',
-  },
-  {
-    id: 2,
-    title: 'Product Manager',
-    created: 'Feb 5, 2024',
-    applications: 28,
-    status: 'Active',
-  },
-  {
-    id: 3,
-    title: 'UX Designer',
-    created: 'Jan 28, 2024',
-    applications: 19,
-    status: 'Closed',
-  },
-  {
-    id: 4,
-    title: 'Data Analyst',
-    created: 'Jan 15, 2024',
-    applications: 42,
-    status: 'Active',
-  },
-]
+import { MoreHorizontal, Loader2, Trash2, Share2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { format } from 'date-fns'
+import { toast } from 'sonner'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+
+interface Job {
+  id: string
+  title: string
+  createdAt: string
+  _count: {
+    applications: number
+  }
+}
 
 export function JobsTable() {
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchJobs = async () => {
+    try {
+      const response = await fetch('/api/jobs')
+      const result = await response.json()
+      if (result.success) {
+        setJobs(result.data)
+      } else {
+        toast.error(result.error || 'Failed to fetch jobs')
+      }
+    } catch (error) {
+      toast.error('Failed to load jobs')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchJobs()
+  }, [])
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/jobs/${id}`, {
+        method: 'DELETE',
+      })
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success('Job deleted')
+        setJobs(jobs.filter(job => job.id !== id))
+      } else {
+        toast.error(result.error || 'Failed to delete job')
+      }
+    } catch (error) {
+      toast.error('Failed to delete job')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (jobs.length === 0) {
+    return (
+      <div className="text-center p-8 text-muted-foreground border border-border rounded-2xl bg-card">
+        No jobs found. Create your first job to get started.
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
       <div className="overflow-x-auto">
@@ -65,26 +111,42 @@ export function JobsTable() {
                   {job.title}
                 </td>
                 <td className="px-6 py-4 text-sm text-muted-foreground">
-                  {job.created}
+                  {format(new Date(job.createdAt), 'MMM d, yyyy')}
                 </td>
                 <td className="px-6 py-4 text-sm text-muted-foreground">
-                  {job.applications}
+                  {job._count.applications}
                 </td>
                 <td className="px-6 py-4 text-sm">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      job.status === 'Active'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {job.status}
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                    Active
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <button className="p-1 hover:bg-secondary rounded-lg transition-colors">
-                    <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1 hover:bg-secondary rounded-lg transition-colors">
+                        <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/jobs/${job.id}`)
+                          toast.success('Application link copied to clipboard')
+                        }}
+                      >
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share Link
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => handleDelete(job.id)}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </td>
               </tr>
             ))}

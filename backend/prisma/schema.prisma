@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum for Role
+enum Role {
+  HR
+  CANDIDATE
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  REJECTED
+  INTERVIEW
+}
+
+model User {
+  id            String    @id @default(cuid())
+  clerkId       String    @unique
+  email         String    @unique
+  name          String?
+  role          Role      @default(CANDIDATE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  jobsCreated   Job[]
+  applications  Application[]
+  meetingsCreated Meeting[]
+  participations  Participant[]
+  transcripts     Transcript[]
+
+  @@index([clerkId])
+  @@index([email])
+}
+
+// NextAuth models removed (Account, Session, VerificationToken)
+
+model Job {
+  id                String   @id @default(cuid())
+  title             String
+  description       String   @db.Text
+  preferredLanguage String   @default("en")
+  createdById       String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  createdBy     User          @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  applications  Application[]
+
+  @@index([createdById])
+}
+
+model Application {
+  id                 String            @id @default(cuid())
+  jobId              String
+  candidateId        String
+  resumeUrl          String
+  extractedText      String?           @db.Text
+  detectedLanguage   String?
+  translatedText     String?           @db.Text
+  aiScore            Json?
+  status             ApplicationStatus @default(APPLIED)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  job       Job        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidate User       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  interview Interview?
+
+  @@index([jobId])
+  @@index([candidateId])
+  @@index([status])
+}
+
+model Interview {
+  id                   String   @id @default(cuid())
+  applicationId        String   @unique
+  scheduledAt          DateTime
+  googleEventId        String?
+  meetingLink          String?
+  transcript           String?  @db.Text
+  translatedTranscript String?  @db.Text
+  momText              String?  @db.Text
+  momPdfUrl            String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([scheduledAt])
+}
+
+// meeting platform models
+
+enum MeetingStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Meeting {
+  id          String        @id @default(cuid())
+  title       String
+  createdById String
+  type        String        @default("GENERAL") // INTERVIEW, GENERAL, etc.
+  status      MeetingStatus @default(SCHEDULED)
+  createdAt   DateTime      @default(now())
+  endedAt     DateTime?
+
+  createdBy    User             @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  participants Participant[]
+  transcripts  Transcript[]
+  mom          MinuteOfMeeting?
+
+  @@index([createdById])
+  @@index([status])
+}
+
+model Participant {
+  id        String    @id @default(cuid())
+  meetingId String
+  userId    String
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([meetingId])
+  @@index([userId])
+}
+
+model Transcript {
+  id        String   @id @default(cuid())
+  meetingId String
+  speakerId String
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  speaker User    @relation(fields: [speakerId], references: [id], onDelete: Cascade)
+
+  @@index([meetingId])
+}
+
+model MinuteOfMeeting {
+  id          String   @id @default(cuid())
+  meetingId   String   @unique
+  summary     String   @db.Text
+  keyPoints   String[]
+  actionItems String[]
+  decisions   String[]
+  generatedAt DateTime @default(now())
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+}
