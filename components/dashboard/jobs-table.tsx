@@ -4,6 +4,7 @@ import { MoreHorizontal, Loader2, Trash2, Share2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
+import { useUiTranslations } from '@/hooks/use-ui-translations'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +24,22 @@ interface Job {
 export function JobsTable() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
+  const { t } = useUiTranslations(
+    'Failed to fetch jobs',
+    'Failed to load jobs',
+    'Job deleted',
+    'Failed to delete job',
+    'No jobs found. Create your first job to get started.',
+    'Job Title',
+    'Created Date',
+    'Applications',
+    'Status',
+    'Actions',
+    'Active',
+    'Application link copied to clipboard',
+    'Share Link',
+    'Delete'
+  )
 
   const fetchJobs = async () => {
     try {
@@ -31,10 +48,10 @@ export function JobsTable() {
       if (result.success) {
         setJobs(result.data)
       } else {
-        toast.error(result.error || 'Failed to fetch jobs')
+        toast.error(result.error || t('Failed to fetch jobs'))
       }
     } catch (error) {
-      toast.error('Failed to load jobs')
+      toast.error(t('Failed to load jobs'))
     } finally {
       setLoading(false)
     }
@@ -52,13 +69,13 @@ export function JobsTable() {
       const result = await response.json()
 
       if (result.success) {
-        toast.success('Job deleted')
-        setJobs(jobs.filter(job => job.id !== id))
+        toast.success(t('Job deleted'))
+        setJobs(jobs.filter((job) => job.id !== id))
       } else {
-        toast.error(result.error || 'Failed to delete job')
+        toast.error(result.error || t('Failed to delete job'))
       }
     } catch (error) {
-      toast.error('Failed to delete job')
+      toast.error(t('Failed to delete job'))
     }
   }
 
@@ -73,7 +90,7 @@ export function JobsTable() {
   if (jobs.length === 0) {
     return (
       <div className="text-center p-8 text-muted-foreground border border-border rounded-2xl bg-card">
-        No jobs found. Create your first job to get started.
+        {t('No jobs found. Create your first job to get started.')}
       </div>
     )
   }
@@ -85,19 +102,19 @@ export function JobsTable() {
           <thead className="border-b border-border bg-muted/30">
             <tr>
               <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                Job Title
+                {t('Job Title')}
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                Created Date
+                {t('Created Date')}
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                Applications
+                {t('Applications')}
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                Status
+                {t('Status')}
               </th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
-                Actions
+                {t('Actions')}
               </th>
             </tr>
           </thead>
@@ -118,7 +135,7 @@ export function JobsTable() {
                 </td>
                 <td className="px-6 py-4 text-sm">
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                    Active
+                    {t('Active')}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right">
@@ -132,18 +149,18 @@ export function JobsTable() {
                       <DropdownMenuItem
                         onClick={() => {
                           navigator.clipboard.writeText(`${window.location.origin}/jobs/${job.id}`)
-                          toast.success('Application link copied to clipboard')
+                          toast.success(t('Application link copied to clipboard'))
                         }}
                       >
                         <Share2 className="w-4 h-4 mr-2" />
-                        Share Link
+                        {t('Share Link')}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
                         onClick={() => handleDelete(job.id)}
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
+                        {t('Delete')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

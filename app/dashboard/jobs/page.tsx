@@ -10,6 +10,7 @@ import { createJobSchema } from '@/lib/validators'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { useUiTranslations } from '@/hooks/use-ui-translations'
 
 type JobFormData = z.infer<typeof createJobSchema>
 
@@ -18,6 +19,22 @@ export default function JobsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const router = useRouter()
+  const { t } = useUiTranslations(
+    'Failed to create job',
+    'Job created successfully',
+    'Something went wrong',
+    'Jobs',
+    'Manage your job postings and applications',
+    'Active Jobs',
+    'Create Job',
+    'Create New Job',
+    'Job Title',
+    'Description',
+    'Preferred Language',
+    'Cancel',
+    'Creating...',
+    'Create'
+  )
 
   const {
     register,
@@ -43,16 +60,16 @@ export default function JobsPage() {
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to create job')
+        throw new Error(result.error || t('Failed to create job'))
       }
 
-      toast.success('Job created successfully')
+      toast.success(t('Job created successfully'))
       setIsCreatingJob(false)
       reset()
-      setRefreshKey((prev) => prev + 1) // Trigger table refresh
+      setRefreshKey((prev) => prev + 1)
       router.refresh()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Something went wrong')
+      toast.error(error instanceof Error ? error.message : t('Something went wrong'))
     } finally {
       setIsSubmitting(false)
     }
@@ -67,31 +84,29 @@ export default function JobsPage() {
       <main className="p-6 md:p-8">
         <div className="flex justify-between items-center mb-8">
           <h2 className="font-accent text-xl font-semibold text-foreground">
-            Active Jobs
+            {t('Active Jobs')}
           </h2>
           <button
             onClick={() => setIsCreatingJob(true)}
             className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-opacity font-medium"
           >
             <Plus className="w-5 h-5" />
-            Create Job
+            {t('Create Job')}
           </button>
         </div>
 
-        {/* Jobs Table */}
         <JobsTable key={refreshKey} />
 
-        {/* Create Job Modal */}
         {isCreatingJob && (
           <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
             <div className="bg-card rounded-2xl border border-border shadow-lg max-w-md w-full p-8">
               <h3 className="font-accent text-2xl font-bold text-foreground mb-6">
-                Create New Job
+                {t('Create New Job')}
               </h3>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Job Title
+                    {t('Job Title')}
                   </label>
                   <input
                     {...register('title')}
@@ -106,7 +121,7 @@ export default function JobsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Description
+                    {t('Description')}
                   </label>
                   <textarea
                     {...register('description')}
@@ -120,7 +135,7 @@ export default function JobsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Preferred Language
+                    {t('Preferred Language')}
                   </label>
                   <select
                     {...register('preferredLanguage')}
@@ -140,7 +155,7 @@ export default function JobsPage() {
                     className="flex-1 px-4 py-2 rounded-lg border border-input text-foreground hover:bg-secondary transition-colors font-medium"
                     disabled={isSubmitting}
                   >
-                    Cancel
+                    {t('Cancel')}
                   </button>
                   <button
                     type="submit"
@@ -150,10 +165,10 @@ export default function JobsPage() {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Creating...
+                        {t('Creating...')}
                       </>
                     ) : (
-                      'Create'
+                      t('Create')
                     )}
                   </button>
                 </div>

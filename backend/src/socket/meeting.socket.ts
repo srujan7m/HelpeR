@@ -20,14 +20,30 @@ export function setupMeetingSocket(io: Server) {
 
         socket.on('join-room', async ({ meetingId, userId }) => {
             if (!meetingId || !userId) return;
+            socket.data.meetingId = meetingId;
+            socket.data.userId = userId;
             socket.join(meetingId);
             console.log(`User ${userId} joined room ${meetingId}`);
 
             try {
-                await meetingService.joinMeeting(meetingId, userId);
-                io.to(meetingId).emit('participant-joined', { userId });
+                const participant = await meetingService.joinMeeting(meetingId, userId);
+                io.to(meetingId).emit('participant-joined', {
+                    id: participant.user.id,
+                    clerkId: participant.user.clerkId,
+                    name: participant.user.name || participant.user.email || 'Participant'
+                });
+
+                const participants = await meetingService.getParticipants(meetingId);
+                io.to(meetingId).emit('participants-updated', participants.map((p: any) => ({
+                    id: p.user.id,
+                    clerkId: p.user.clerkId,
+                    name: p.user.name || p.user.email || 'Participant'
+                })));
             } catch (e) {
                 console.error('Error joining meeting:', e);
+                socket.emit('meeting-error', {
+                    message: 'Failed to join room'
+                });
             }
         });
 
@@ -46,17 +62,21 @@ export function setupMeetingSocket(io: Server) {
                     console.log(`Transcript from ${userId}: ${text}`);
 
                     // Save to DB
-                    await meetingService.saveTranscript(meetingId, userId, text);
+                    const savedTranscript = await meetingService.saveTranscript(meetingId, userId, text);
 
                     // Broadcast
                     io.to(meetingId).emit('new-transcript', {
-                        speakerId: userId,
+                        speakerId: savedTranscript.speaker.clerkId || savedTranscript.speaker.id,
+                        speakerName: savedTranscript.speaker.name || savedTranscript.speaker.email || 'Participant',
                         text,
                         timestamp: new Date()
                     });
                 }
             } catch (e) {
                 console.error('Error processing audio:', e);
+                socket.emit('meeting-error', {
+                    message: 'Audio processing failed'
+                });
             }
         });
 
@@ -70,20 +90,37 @@ export function setupMeetingSocket(io: Server) {
 
                 // Generate MOM
                 const transcripts = await meetingService.getTranscripts(meetingId);
-                const fullText = transcripts.map((t: { speakerId: string; text: string }) => `${t.speakerId}: ${t.text}`).join('\n');
+                const fullText = transcripts
+                    .map((t: any) => `${t.speaker.name || t.speaker.email || t.speakerId}: ${t.text}`)
+                    .join('\n');
 
                 if (!fullText) {
                     console.log("No transcripts to generate MOM.");
                     return;
                 }
 
-                const mom = await llm.generateMOM(fullText);
+                const rawMom = await llm.generateMOM(fullText);
+                const mom = {
+                    summary: rawMom.summary || 'No summary available.',
+                    key_points: rawMom.key_points || rawMom.keyPoints || [],
+                    action_items: rawMom.action_items || rawMom.actionItems || [],
+                    decisions: rawMom.decisions || []
+                };
+
                 await meetingService.saveMOM(meetingId, mom);
 
-                io.to(meetingId).emit('mom-generated', mom);
+                io.to(meetingId).emit('mom-generated', {
+                    summary: mom.summary,
+                    keyPoints: mom.key_points,
+                    actionItems: mom.action_items,
+                    decisions: mom.decisions
+                });
 
             } catch (e) {
                 console.error('Error ending meeting:', e);
+                socket.emit('meeting-error', {
+                    message: 'Failed to complete meeting'
+                });
             }
         });
 

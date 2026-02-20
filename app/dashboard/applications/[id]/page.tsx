@@ -11,6 +11,7 @@ import { format } from 'date-fns'
 import Link from 'next/link'
 import { ScreeningModal } from '@/components/dashboard/screening-modal'
 import { ScheduleInterviewModal } from '@/components/dashboard/schedule-interview-modal'
+import { useUiTranslations } from '@/hooks/use-ui-translations'
 
 interface Application {
     id: string
@@ -44,6 +45,47 @@ export default function ApplicationDetailsPage() {
     const [isScreeningModalOpen, setIsScreeningModalOpen] = useState(false)
     const [isScreening, setIsScreening] = useState(false)
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+    const { t } = useUiTranslations(
+        'Failed to fetch application',
+        'Failed to load application',
+        'Resume screened successfully',
+        'Screening failed',
+        'Application Details',
+        'Back to Applications',
+        'Shortlist & Schedule Interview',
+        'Interview Scheduled',
+        'Date & Time',
+        'Meeting Link',
+        'Join Meeting',
+        'Meeting link copied',
+        'Copy Link',
+        'Candidate Information',
+        'Name',
+        'Email',
+        'Applied On',
+        'Status',
+        'Resume Content',
+        'View PDF',
+        'No text extracted from resume.',
+        'AI Screening',
+        'Re-Screen',
+        'Screen Resume',
+        'Overall Match',
+        'Technical Skills',
+        'Experience',
+        'Education',
+        'Cultural Fit',
+        'Keyword Match',
+        'Summary:',
+        'Strengths:',
+        'Concerns:',
+        'Recommendation:',
+        'Resume has not been screened yet.',
+        'APPLIED',
+        'SHORTLISTED',
+        'INTERVIEW',
+        'REJECTED'
+    )
 
     const fetchApplication = async () => {
         try {
@@ -52,11 +94,11 @@ export default function ApplicationDetailsPage() {
             if (result.success) {
                 setApplication(result.data)
             } else {
-                toast.error(result.error || 'Failed to fetch application')
+                toast.error(result.error || t('Failed to fetch application'))
                 router.push('/dashboard/applications')
             }
         } catch (error) {
-            toast.error('Failed to load application')
+            toast.error(t('Failed to load application'))
         } finally {
             setLoading(false)
         }
@@ -78,14 +120,14 @@ export default function ApplicationDetailsPage() {
             const result = await response.json()
 
             if (result.success) {
-                toast.success('Resume screened successfully')
+                toast.success(t('Resume screened successfully'))
                 setIsScreeningModalOpen(false)
                 fetchApplication() // Refresh to show new score
             } else {
-                throw new Error(result.error || 'Screening failed')
+                throw new Error(result.error || t('Screening failed'))
             }
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Screening failed')
+            toast.error(error instanceof Error ? error.message : t('Screening failed'))
         } finally {
             setIsScreening(false)
         }
@@ -104,7 +146,7 @@ export default function ApplicationDetailsPage() {
     return (
         <>
             <Header
-                title="Application Details"
+                title={t('Application Details')}
                 description={`Review application for ${application.job.title}`}
             />
 
@@ -113,14 +155,14 @@ export default function ApplicationDetailsPage() {
                     <Link href="/dashboard/applications">
                         <Button variant="ghost" size="sm" className="gap-2">
                             <ArrowLeft className="w-4 h-4" />
-                            Back to Applications
+                            {t('Back to Applications')}
                         </Button>
                     </Link>
                     <div className="flex gap-2">
                         {application.status !== 'INTERVIEW' && (
                             <Button onClick={() => setIsScheduleModalOpen(true)} className="gap-2">
                                 <Calendar className="w-4 h-4" />
-                                Shortlist & Schedule Interview
+                                {t('Shortlist & Schedule Interview')}
                             </Button>
                         )}
                     </div>
@@ -134,19 +176,19 @@ export default function ApplicationDetailsPage() {
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2 text-primary">
                                         <Calendar className="w-5 h-5" />
-                                        Interview Scheduled
+                                        {t('Interview Scheduled')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <div className="text-sm font-medium text-muted-foreground">Date & Time</div>
+                                            <div className="text-sm font-medium text-muted-foreground">{t('Date & Time')}</div>
                                             <div className="text-lg font-semibold">
                                                 {format(new Date(application.interview.scheduledAt), 'PPP p')}
                                             </div>
                                         </div>
                                         <div>
-                                            <div className="text-sm font-medium text-muted-foreground">Meeting Link</div>
+                                            <div className="text-sm font-medium text-muted-foreground">{t('Meeting Link')}</div>
                                             <a
                                                 href={application.interview.meetingLink}
                                                 target="_blank"
@@ -161,15 +203,15 @@ export default function ApplicationDetailsPage() {
                                         <Link href={application.interview.meetingLink} target="_blank">
                                             <Button className="gap-2">
                                                 <Video className="w-4 h-4" />
-                                                Join Meeting
+                                                {t('Join Meeting')}
                                             </Button>
                                         </Link>
                                         <Button variant="outline" className="gap-2" onClick={() => {
                                             navigator.clipboard.writeText(application.interview?.meetingLink || '')
-                                            toast.success('Meeting link copied')
+                                            toast.success(t('Meeting link copied'))
                                         }}>
                                             <Share2 className="w-4 h-4" />
-                                            Copy Link
+                                            {t('Copy Link')}
                                         </Button>
                                     </div>
                                 </CardContent>
@@ -178,26 +220,26 @@ export default function ApplicationDetailsPage() {
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>Candidate Information</CardTitle>
+                                <CardTitle>{t('Candidate Information')}</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <div className="text-sm font-medium text-muted-foreground">Name</div>
+                                        <div className="text-sm font-medium text-muted-foreground">{t('Name')}</div>
                                         <div className="text-lg">{application.candidate.name}</div>
                                     </div>
                                     <div>
-                                        <div className="text-sm font-medium text-muted-foreground">Email</div>
+                                        <div className="text-sm font-medium text-muted-foreground">{t('Email')}</div>
                                         <div className="text-lg">{application.candidate.email}</div>
                                     </div>
                                     <div>
-                                        <div className="text-sm font-medium text-muted-foreground">Applied On</div>
+                                        <div className="text-sm font-medium text-muted-foreground">{t('Applied On')}</div>
                                         <div>{format(new Date(application.createdAt), 'PPP')}</div>
                                     </div>
                                     <div>
-                                        <div className="text-sm font-medium text-muted-foreground">Status</div>
+                                        <div className="text-sm font-medium text-muted-foreground">{t('Status')}</div>
                                         <div className="inline-flex px-2 py-1 rounded-full bg-secondary text-secondary-foreground text-sm">
-                                            {application.status}
+                                            {t(application.status)}
                                         </div>
                                     </div>
                                 </div>
@@ -206,13 +248,13 @@ export default function ApplicationDetailsPage() {
 
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between">
-                                <CardTitle>Resume Content</CardTitle>
+                                <CardTitle>{t('Resume Content')}</CardTitle>
                                 <div className="flex gap-2">
                                     {application.resumeUrl && (
                                         <Link href={application.resumeUrl} target="_blank" rel="noopener noreferrer">
                                             <Button variant="outline" size="sm" className="gap-2">
                                                 <FileText className="w-4 h-4" />
-                                                View PDF
+                                                {t('View PDF')}
                                             </Button>
                                         </Link>
                                     )}
@@ -220,7 +262,7 @@ export default function ApplicationDetailsPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="bg-muted/30 p-4 rounded-lg text-sm whitespace-pre-wrap max-h-[500px] overflow-y-auto font-mono">
-                                    {application.extractedText || "No text extracted from resume."}
+                                    {application.extractedText || t('No text extracted from resume.')}
                                 </div>
                             </CardContent>
                         </Card>
@@ -231,10 +273,10 @@ export default function ApplicationDetailsPage() {
                         <Card className="h-fit">
                             <CardHeader>
                                 <CardTitle className="flex items-center justify-between">
-                                    AI Screening
+                                    {t('AI Screening')}
                                     <Button size="sm" onClick={() => setIsScreeningModalOpen(true)}>
                                         <ScanSearch className="w-4 h-4 mr-2" />
-                                        {application.aiScore ? 'Re-Screen' : 'Screen Resume'}
+                                        {application.aiScore ? t('Re-Screen') : t('Screen Resume')}
                                     </Button>
                                 </CardTitle>
                             </CardHeader>
@@ -251,29 +293,29 @@ export default function ApplicationDetailsPage() {
                                                 />
                                                 <span className="text-3xl font-bold">{application.aiScore.overallScore}%</span>
                                             </div>
-                                            <span className="mt-2 text-sm text-muted-foreground">Overall Match</span>
+                                            <span className="mt-2 text-sm text-muted-foreground">{t('Overall Match')}</span>
                                         </div>
 
                                         <div className="space-y-3">
-                                            <ScoreRow label="Technical Skills" score={application.aiScore.technicalSkills} />
-                                            <ScoreRow label="Experience" score={application.aiScore.experience} />
-                                            <ScoreRow label="Education" score={application.aiScore.education} />
-                                            <ScoreRow label="Cultural Fit" score={application.aiScore.culturalFit} />
+                                            <ScoreRow label={t('Technical Skills')} score={application.aiScore.technicalSkills} />
+                                            <ScoreRow label={t('Experience')} score={application.aiScore.experience} />
+                                            <ScoreRow label={t('Education')} score={application.aiScore.education} />
+                                            <ScoreRow label={t('Cultural Fit')} score={application.aiScore.culturalFit} />
                                             {application.aiScore.keywordMatch !== undefined && (
-                                                <ScoreRow label="Keyword Match" score={application.aiScore.keywordMatch} />
+                                                <ScoreRow label={t('Keyword Match')} score={application.aiScore.keywordMatch} />
                                             )}
                                         </div>
 
                                         {application.aiScore.summary && (
                                             <div className="mt-4 p-3 bg-muted/50 rounded-lg text-sm">
-                                                <span className="font-semibold block mb-1">Summary:</span>
+                                                <span className="font-semibold block mb-1">{t('Summary:')}</span>
                                                 {application.aiScore.summary}
                                             </div>
                                         )}
 
                                         {application.aiScore.strengths && application.aiScore.strengths.length > 0 && (
                                             <div>
-                                                <span className="font-semibold text-sm">Strengths:</span>
+                                                <span className="font-semibold text-sm">{t('Strengths:')}</span>
                                                 <ul className="list-disc pl-4 text-sm text-muted-foreground mt-1">
                                                     {application.aiScore.strengths.map((s: string, i: number) => (
                                                         <li key={i}>{s}</li>
@@ -284,7 +326,7 @@ export default function ApplicationDetailsPage() {
 
                                         {application.aiScore.concerns && application.aiScore.concerns.length > 0 && (
                                             <div>
-                                                <span className="font-semibold text-sm text-destructive">Concerns:</span>
+                                                <span className="font-semibold text-sm text-destructive">{t('Concerns:')}</span>
                                                 <ul className="list-disc pl-4 text-sm text-muted-foreground mt-1">
                                                     {application.aiScore.concerns.map((c: string, i: number) => (
                                                         <li key={i}>{c}</li>
@@ -294,7 +336,7 @@ export default function ApplicationDetailsPage() {
                                         )}
 
                                         <div className="pt-4 border-t border-border">
-                                            <span className="font-semibold text-sm mr-2">Recommendation:</span>
+                                            <span className="font-semibold text-sm mr-2">{t('Recommendation:')}</span>
                                             <span className={`font-bold ${getRecommendationColor(application.aiScore.recommendation)}`}>
                                                 {application.aiScore.recommendation}
                                             </span>
@@ -304,7 +346,7 @@ export default function ApplicationDetailsPage() {
                                 ) : (
                                     <div className="text-center py-8 text-muted-foreground">
                                         <ScanSearch className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                        <p>Resume has not been screened yet.</p>
+                                        <p>{t('Resume has not been screened yet.')}</p>
                                     </div>
                                 )}
                             </CardContent>

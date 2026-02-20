@@ -3,6 +3,7 @@
 import { Header } from '@/components/dashboard/header'
 import { AlertCircle } from 'lucide-react'
 import { useState } from 'react'
+import { useUiTranslations } from '@/hooks/use-ui-translations'
 
 export default function SettingsPage() {
   const [formData, setFormData] = useState({
@@ -10,6 +11,22 @@ export default function SettingsPage() {
     email: 'john@example.com',
     language: 'English',
   })
+  const { t } = useUiTranslations(
+    'Settings',
+    'Manage your account and preferences',
+    'Profile Settings',
+    'Full Name',
+    'Email Address',
+    'Preferred Language',
+    'Save Changes',
+    'Change Password',
+    'Current Password',
+    'New Password',
+    'Confirm New Password',
+    'Update Password',
+    'Delete Account',
+    'Permanently delete your account and all associated data. This action cannot be undone.'
+  )
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -18,7 +35,6 @@ export default function SettingsPage() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Handle form submission
   }
 
   return (
@@ -29,15 +45,14 @@ export default function SettingsPage() {
       />
       <main className="p-6 md:p-8 max-w-2xl">
         <div className="space-y-8">
-          {/* Profile Settings */}
           <div className="p-6 rounded-2xl border border-border bg-card">
             <h3 className="font-accent text-xl font-semibold text-foreground mb-6">
-              Profile Settings
+              {t('Profile Settings')}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Full Name
+                  {t('Full Name')}
                 </label>
                 <input
                   type="text"
@@ -50,7 +65,7 @@ export default function SettingsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Email Address
+                  {t('Email Address')}
                 </label>
                 <input
                   type="email"
@@ -63,7 +78,7 @@ export default function SettingsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Preferred Language
+                  {t('Preferred Language')}
                 </label>
                 <select
                   name="language"
@@ -82,20 +97,19 @@ export default function SettingsPage() {
                 type="submit"
                 className="w-full px-4 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-opacity font-medium"
               >
-                Save Changes
+                {t('Save Changes')}
               </button>
             </form>
           </div>
 
-          {/* Password Settings */}
           <div className="p-6 rounded-2xl border border-border bg-card">
             <h3 className="font-accent text-xl font-semibold text-foreground mb-6">
-              Change Password
+              {t('Change Password')}
             </h3>
             <form className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Current Password
+                  {t('Current Password')}
                 </label>
                 <input
                   type="password"
@@ -105,7 +119,7 @@ export default function SettingsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  New Password
+                  {t('New Password')}
                 </label>
                 <input
                   type="password"
@@ -115,7 +129,7 @@ export default function SettingsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Confirm New Password
+                  {t('Confirm New Password')}
                 </label>
                 <input
                   type="password"
@@ -127,24 +141,23 @@ export default function SettingsPage() {
                 type="submit"
                 className="w-full px-4 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-opacity font-medium"
               >
-                Update Password
+                {t('Update Password')}
               </button>
             </form>
           </div>
 
-          {/* Danger Zone */}
           <div className="p-6 rounded-2xl border border-destructive/20 bg-destructive/5">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <h3 className="font-accent font-semibold text-foreground mb-2">
-                  Delete Account
+                  {t('Delete Account')}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Permanently delete your account and all associated data. This action cannot be undone.
+                  {t('Permanently delete your account and all associated data. This action cannot be undone.')}
                 </p>
                 <button className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:opacity-90 transition-opacity font-medium">
-                  Delete Account
+                  {t('Delete Account')}
                 </button>
               </div>
             </div>

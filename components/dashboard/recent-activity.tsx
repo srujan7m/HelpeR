@@ -1,6 +1,7 @@
 'use client'
 
 import { formatDistanceToNow } from 'date-fns'
+import { useUiTranslations } from '@/hooks/use-ui-translations'
 
 interface Activity {
   id: string
@@ -20,14 +21,24 @@ interface RecentActivityProps {
 }
 
 export function RecentActivity({ activities = [] }: RecentActivityProps) {
+  const { t } = useUiTranslations(
+    'Recent Activity',
+    'No recent activity',
+    'Application for',
+    'APPLIED',
+    'SHORTLISTED',
+    'INTERVIEW',
+    'REJECTED'
+  )
+
   return (
     <div className="p-6 rounded-2xl border border-border bg-card">
       <h3 className="font-accent text-lg font-semibold text-foreground mb-6">
-        Recent Activity
+        {t('Recent Activity')}
       </h3>
       <div className="space-y-4">
         {activities.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No recent activity</p>
+          <p className="text-sm text-muted-foreground">{t('No recent activity')}</p>
         ) : (
           activities.map((activity) => (
             <div
@@ -39,10 +50,10 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-foreground text-sm">
-                  Application for {activity.job.title}
+                  {t('Application for')} {activity.job.title}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {activity.candidate.name || activity.candidate.email} - {activity.status}
+                  {activity.candidate.name || activity.candidate.email} - {t(activity.status)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-2">
                   {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}

@@ -4,10 +4,10 @@ import { sendSuccess, sendError } from '@/lib/api-response'
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { id } = params
+        const { id } = await params
         const job = await prisma.job.findUnique({
             where: { id },
             include: {
@@ -29,3 +29,4 @@ export async function GET(
         return sendError(error)
     }
 }
+

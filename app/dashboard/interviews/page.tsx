@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { format } from 'date-fns'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { useUiTranslations } from '@/hooks/use-ui-translations'
 
 interface Interview {
   id: string
@@ -25,6 +26,19 @@ interface Interview {
 export default function InterviewsPage() {
   const [interviews, setInterviews] = useState<Interview[]>([])
   const [loading, setLoading] = useState(true)
+  const { t } = useUiTranslations(
+    'Failed to fetch interviews',
+    'Interviews',
+    'Schedule and manage candidate interviews',
+    'Upcoming Interviews',
+    'No upcoming interviews scheduled.',
+    'Candidate',
+    'Join Interview',
+    'Past Interviews',
+    'No past interviews.',
+    'View MoM',
+    'Download'
+  )
 
   useEffect(() => {
     const fetchInterviews = async () => {
@@ -35,7 +49,7 @@ export default function InterviewsPage() {
           setInterviews(data.data)
         }
       } catch (error) {
-        toast.error('Failed to fetch interviews')
+        toast.error(t('Failed to fetch interviews'))
       } finally {
         setLoading(false)
       }
@@ -51,8 +65,8 @@ export default function InterviewsPage() {
     )
   }
 
-  const upcomingInterviews = interviews.filter(i => new Date(i.scheduledAt) > new Date())
-  const pastInterviews = interviews.filter(i => new Date(i.scheduledAt) <= new Date())
+  const upcomingInterviews = interviews.filter((i) => new Date(i.scheduledAt) > new Date())
+  const pastInterviews = interviews.filter((i) => new Date(i.scheduledAt) <= new Date())
 
   return (
     <>
@@ -62,14 +76,13 @@ export default function InterviewsPage() {
       />
       <main className="p-6 md:p-8">
         <div className="space-y-8">
-          {/* Upcoming Interviews */}
           <div>
             <h2 className="font-accent text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Upcoming Interviews
+              {t('Upcoming Interviews')}
             </h2>
             {upcomingInterviews.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No upcoming interviews scheduled.</p>
+              <p className="text-muted-foreground text-sm">{t('No upcoming interviews scheduled.')}</p>
             ) : (
               <div className="space-y-4">
                 {upcomingInterviews.map((interview) => (
@@ -83,7 +96,7 @@ export default function InterviewsPage() {
                           {interview.application.job.title}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          Candidate: {interview.application.candidate.name}
+                          {t('Candidate')}: {interview.application.candidate.name}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                           <Clock className="h-4 w-4" />
@@ -94,7 +107,7 @@ export default function InterviewsPage() {
                         <Link href={interview.meetingLink} target="_blank">
                           <Button className="gap-2">
                             <Video className="w-4 h-4" />
-                            Join Interview
+                            {t('Join Interview')}
                           </Button>
                         </Link>
                       )}
@@ -105,14 +118,13 @@ export default function InterviewsPage() {
             )}
           </div>
 
-          {/* Completed Interviews */}
           <div>
             <h2 className="font-accent text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Past Interviews
+              {t('Past Interviews')}
             </h2>
             {pastInterviews.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No past interviews.</p>
+              <p className="text-muted-foreground text-sm">{t('No past interviews.')}</p>
             ) : (
               <div className="space-y-4">
                 {pastInterviews.map((interview) => (
@@ -126,7 +138,7 @@ export default function InterviewsPage() {
                           {interview.application.job.title}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          Candidate: {interview.application.candidate.name}
+                          {t('Candidate')}: {interview.application.candidate.name}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                           <Clock className="h-4 w-4" />
@@ -139,7 +151,7 @@ export default function InterviewsPage() {
                             <Link href={interview.meetingLink} target="_blank">
                               <Button variant="outline" className="gap-2">
                                 <FileText className="w-4 h-4" />
-                                View MoM
+                                {t('View MoM')}
                               </Button>
                             </Link>
                             <Button
@@ -148,7 +160,7 @@ export default function InterviewsPage() {
                               onClick={() => window.open(`/api/meetings/${interview.id}/mom/download`, '_blank')}
                             >
                               <FileText className="w-4 h-4" />
-                              Download
+                              {t('Download')}
                             </Button>
                           </>
                         )}

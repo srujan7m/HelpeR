@@ -6,6 +6,7 @@ import { RecentActivity } from '@/components/dashboard/recent-activity'
 import { Users, FileText, Video, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { useUiTranslations } from '@/hooks/use-ui-translations'
 
 interface DashboardStats {
   stats: {
@@ -19,6 +20,17 @@ interface DashboardStats {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const { t } = useUiTranslations(
+    'Failed to load dashboard stats',
+    'Dashboard',
+    'Welcome to your HelpeR dashboard',
+    'Total Applications',
+    'All time',
+    'Shortlisted',
+    'Candidates ready',
+    'Interviews Scheduled',
+    'Upcoming'
+  )
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -28,10 +40,10 @@ export default function DashboardPage() {
         if (result.success) {
           setData(result.data)
         } else {
-          toast.error('Failed to load dashboard stats')
+          toast.error(t('Failed to load dashboard stats'))
         }
       } catch (error) {
-        toast.error('Failed to load dashboard stats')
+        toast.error(t('Failed to load dashboard stats'))
       } finally {
         setLoading(false)
       }
@@ -56,30 +68,28 @@ export default function DashboardPage() {
       />
       <main className="p-6 md:p-8">
         <div className="space-y-8">
-          {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <KPICard
               icon={Users}
-              label="Total Applications"
+              label={t('Total Applications')}
               value={data?.stats.totalApplications.toString() || '0'}
-              change="All time"
+              change={t('All time')}
             />
             <KPICard
               icon={FileText}
-              label="Shortlisted"
+              label={t('Shortlisted')}
               value={data?.stats.shortlisted.toString() || '0'}
-              change="Candidates ready"
+              change={t('Candidates ready')}
               trend="up"
             />
             <KPICard
               icon={Video}
-              label="Interviews Scheduled"
+              label={t('Interviews Scheduled')}
               value={data?.stats.interviews.toString() || '0'}
-              change="Upcoming"
+              change={t('Upcoming')}
             />
           </div>
 
-          {/* Recent Activity */}
           <RecentActivity activities={data?.recentActivity} />
         </div>
       </main>

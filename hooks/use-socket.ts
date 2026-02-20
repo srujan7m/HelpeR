@@ -6,15 +6,16 @@ export const useSocket = (meetingId: string, userId: string) => {
     const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
-        // Connect to backend server
-        const socketInstance = io('http://localhost:3001');
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000';
+        const socketInstance = io(socketUrl);
 
         socketInstance.on('connect', () => {
             setIsConnected(true);
             console.log('Connected to socket server');
 
-            // Join the meeting room
-            socketInstance.emit('join-room', { meetingId, userId });
+            if (meetingId && userId) {
+                socketInstance.emit('join-room', { meetingId, userId });
+            }
         });
 
         socketInstance.on('disconnect', () => {

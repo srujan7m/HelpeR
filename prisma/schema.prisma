@@ -29,6 +29,7 @@ model User {
   email         String    @unique
   name          String?
   role          Role      @default(CANDIDATE)
+  language      String    @default("en")  // User's preferred language
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -164,4 +165,18 @@ model MinuteOfMeeting {
   generatedAt DateTime @default(now())
 
   meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+}
+
+// Translation cache to avoid redundant API calls
+model TranslationCache {
+  id             String   @id @default(cuid())
+  sourceText     String   @db.Text
+  sourceLang     String   @default("en")
+  targetLang     String
+  translatedText String   @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([sourceText, sourceLang, targetLang])
+  @@index([sourceLang, targetLang])
 }

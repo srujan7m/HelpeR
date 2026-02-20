@@ -6,8 +6,9 @@ import { User } from 'lucide-react'
 
 interface TranscriptItem {
     speakerId: string
+    speakerName?: string
     text: string
-    timestamp: Date
+    timestamp: Date | string
 }
 
 interface TranscriptionFeedProps {
@@ -53,8 +54,16 @@ export function TranscriptionFeed({ transcripts, currentUserId }: TranscriptionF
                                             <User className="h-3 w-3" />
                                         </div>
                                         <span className="text-xs font-medium opacity-70">
-                                            Speaker {item.speakerId.slice(0, 4)}
+                                            {item.speakerName || `Speaker ${item.speakerId.slice(0, 4)}`}
                                         </span>
+                                        <span className="text-xs opacity-50">
+                                            {new Date(item.timestamp).toLocaleTimeString()}
+                                        </span>
+                                    </div>
+                                )}
+                                {isMe && (
+                                    <div className="text-right text-xs opacity-70 mb-1">
+                                        {new Date(item.timestamp).toLocaleTimeString()}
                                     </div>
                                 )}
                                 <p className="text-sm leading-relaxed">{item.text}</p>

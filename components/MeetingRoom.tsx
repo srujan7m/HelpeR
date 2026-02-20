@@ -27,26 +27,39 @@ export default function MeetingRoom({ meetingId, userId }: MeetingRoomProps) {
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
 
+    const [status, setStatus] = useState("Connecting...");
+
     useEffect(() => {
         const newSocket = io("http://localhost:5000");
         setSocket(newSocket);
 
         newSocket.on("connect", () => {
-            console.log("Connected to websocket");
+            console.log("Connected to websocket", newSocket.id);
+            setStatus("Connected");
             newSocket.emit("join-room", { meetingId, userId });
             toast.success("Connected to meeting room");
         });
 
+        newSocket.on("connect_error", (err) => {
+            console.error("Socket connection error:", err);
+            setStatus("Connection Error");
+            toast.error("Failed to connect to server");
+        });
+
         newSocket.on("new-transcript", (data: Transcript) => {
+            console.log("Received transcript:", data);
             setTranscripts((prev) => [...prev, data]);
         });
 
         newSocket.on("mom-generated", (momData) => {
+            console.log("MOM generated:", momData);
             setMom(momData);
             toast.success("MOM Generated!");
         });
 
         newSocket.on("disconnect", () => {
+            console.log("Socket disconnected");
+            setStatus("Disconnected");
             toast.error("Disconnected from meeting room");
         });
 
@@ -56,6 +69,11 @@ export default function MeetingRoom({ meetingId, userId }: MeetingRoomProps) {
     }, [meetingId, userId]);
 
     const startRecording = async () => {
+        if (!socket || !socket.connected) {
+            toast.error("Socket not connected. Cannot start.");
+            return;
+        }
+
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const mediaRecorder = new MediaRecorder(stream);
@@ -64,10 +82,9 @@ export default function MeetingRoom({ meetingId, userId }: MeetingRoomProps) {
 
             mediaRecorder.ondataavailable = async (event) => {
                 if (event.data.size > 0) {
-                    // chunksRef.current.push(event.data);
-                    // Send chunk immediately for real-time
                     const arrayBuffer = await event.data.arrayBuffer();
-                    socket?.emit("audio-chunk", {
+                    console.log("Sending audio chunk, size:", arrayBuffer.byteLength);
+                    socket.emit("audio-chunk", {
                         meetingId,
                         userId,
                         audioChunk: arrayBuffer
@@ -94,8 +111,13 @@ export default function MeetingRoom({ meetingId, userId }: MeetingRoomProps) {
     };
 
     const endMeeting = () => {
+        if (!socket || !socket.connected) {
+            toast.error("Socket not connected. Cannot end meeting.");
+            return;
+        }
         stopRecording();
-        socket?.emit("end-meeting", { meetingId });
+        console.log("Ending meeting:", meetingId);
+        socket.emit("end-meeting", { meetingId });
         toast.loading("Ending meeting and generating MOM...");
     };
 
@@ -105,10 +127,15 @@ export default function MeetingRoom({ meetingId, userId }: MeetingRoomProps) {
             <Card className="flex flex-col h-full">
                 <CardHeader>
                     <CardTitle className="flex justify-between items-center">
-                        <span>Live Meeting</span>
+                        <div className="flex items-center gap-2">
+                            <span>Live Meeting</span>
+                            <span className={`text-xs px-2 py-1 rounded-full ${status === 'Connected' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                {status}
+                            </span>
+                        </div>
                         <div className="flex gap-2">
                             {!isRecording ? (
-                                <Button onClick={startRecording} variant="default" size="sm">
+                                <Button onClick={startRecording} variant="default" size="sm" disabled={status !== 'Connected'}>
                                     <Mic className="md:mr-2 h-4 w-4" />
                                     <span className="hidden md:inline">Start Audio</span>
                                 </Button>
@@ -119,7 +146,7 @@ export default function MeetingRoom({ meetingId, userId }: MeetingRoomProps) {
                                 </Button>
                             )}
 
-                            <Button onClick={endMeeting} variant="destructive" size="sm">
+                            <Button onClick={endMeeting} variant="destructive" size="sm" disabled={status !== 'Connected'}>
                                 <PhoneOff className="md:mr-2 h-4 w-4" />
                                 <span className="hidden md:inline">End Meeting</span>
                             </Button>

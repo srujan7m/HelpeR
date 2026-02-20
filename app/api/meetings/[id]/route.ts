@@ -20,6 +20,32 @@ async function handleGET(
                     email: true
                 }
             },
+            participants: {
+                where: { leftAt: null },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            clerkId: true,
+                            name: true,
+                            email: true
+                        }
+                    }
+                }
+            },
+            transcripts: {
+                orderBy: { createdAt: 'asc' },
+                include: {
+                    speaker: {
+                        select: {
+                            id: true,
+                            clerkId: true,
+                            name: true,
+                            email: true
+                        }
+                    }
+                }
+            },
             mom: true
         }
     })
@@ -37,6 +63,18 @@ async function handleGET(
 
     return apiResponse({
         ...meeting,
+        participants: meeting.participants.map((participant) => ({
+            id: participant.user.id,
+            clerkId: participant.user.clerkId,
+            name: participant.user.name || participant.user.email || 'Participant'
+        })),
+        transcripts: meeting.transcripts.map((transcript) => ({
+            id: transcript.id,
+            speakerId: transcript.speaker.clerkId || transcript.speaker.id,
+            speakerName: transcript.speaker.name || transcript.speaker.email || 'Participant',
+            text: transcript.text,
+            timestamp: transcript.createdAt
+        })),
         isHost
     })
 }

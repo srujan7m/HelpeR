@@ -10,9 +10,19 @@ export const getServerSession = async () => {
     }
 
     // Fetch user from our database to get the role
-    const dbUser = await prisma.user.findUnique({
-        where: { clerkId: user.id },
-    })
+    let dbUser = null
+    try {
+        dbUser = await prisma.user.findUnique({
+            where: { clerkId: user.id },
+            select: {
+                id: true,
+                role: true,
+            },
+        })
+    } catch (error) {
+        // Keep auth flow alive even if DB is temporarily unavailable.
+        dbUser = null
+    }
 
     return {
         user: {

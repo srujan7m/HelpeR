@@ -4,9 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "next build",
+    "build": "npm run i18n:validate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "i18n:extract": "node scripts/lingo-extract.js",
+    "i18n:translate": "node scripts/lingo-translate.js --target=auto",
+    "i18n:validate": "node scripts/lingo-validate.js",
+    "i18n:sync": "npm run i18n:extract && npm run i18n:translate",
+    "validate:translations": "node scripts/validateTranslations.js",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.37.4",
@@ -46,8 +54,10 @@
     "clsx": "^2.1.1",
     "cmdk": "1.1.1",
     "date-fns": "4.1.0",
+    "dotenv": "^17.3.1",
     "embla-carousel-react": "8.5.1",
     "framer-motion": "^11.0.3",
+    "glob": "^13.0.5",
     "googleapis": "^144.0.0",
     "input-otp": "1.4.1",
     "lucide-react": "^0.544.0",

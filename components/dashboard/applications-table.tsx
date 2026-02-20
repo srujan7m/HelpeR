@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { ScreeningModal } from './screening-modal'
 import Link from 'next/link'
+import { useUiTranslations } from '@/hooks/use-ui-translations'
 
 interface Application {
   id: string
@@ -43,6 +44,26 @@ export function ApplicationsTable() {
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null)
   const [isScreeningModalOpen, setIsScreeningModalOpen] = useState(false)
   const [isScreening, setIsScreening] = useState(false)
+  const { t } = useUiTranslations(
+    'Failed to fetch applications',
+    'Failed to load applications',
+    'Resume screened successfully',
+    'Screening failed',
+    'No applications found.',
+    'Candidate Name',
+    'Job Title',
+    'AI Score',
+    'Status',
+    'Applied Date',
+    'Actions',
+    'Not Screened',
+    'Screen',
+    'View',
+    'SHORTLISTED',
+    'INTERVIEW',
+    'APPLIED',
+    'REJECTED'
+  )
 
   const fetchApplications = async () => {
     try {
@@ -51,10 +72,10 @@ export function ApplicationsTable() {
       if (result.success) {
         setApplications(result.data)
       } else {
-        toast.error(result.error || 'Failed to fetch applications')
+        toast.error(result.error || t('Failed to fetch applications'))
       }
     } catch (error) {
-      toast.error('Failed to load applications')
+      toast.error(t('Failed to load applications'))
     } finally {
       setLoading(false)
     }
@@ -84,14 +105,14 @@ export function ApplicationsTable() {
       const result = await response.json()
 
       if (result.success) {
-        toast.success('Resume screened successfully')
+        toast.success(t('Resume screened successfully'))
         setIsScreeningModalOpen(false)
-        fetchApplications() // Refresh list to show new score
+        fetchApplications()
       } else {
-        throw new Error(result.error || 'Screening failed')
+        throw new Error(result.error || t('Screening failed'))
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Screening failed')
+      toast.error(error instanceof Error ? error.message : t('Screening failed'))
     } finally {
       setIsScreening(false)
     }
@@ -108,7 +129,7 @@ export function ApplicationsTable() {
   if (applications.length === 0) {
     return (
       <div className="text-center p-8 text-muted-foreground border border-border rounded-2xl bg-card">
-        No applications found.
+        {t('No applications found.')}
       </div>
     )
   }
@@ -121,22 +142,22 @@ export function ApplicationsTable() {
             <thead className="border-b border-border bg-muted/30">
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                  Candidate Name
+                  {t('Candidate Name')}
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                  Job Title
+                  {t('Job Title')}
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                  AI Score
+                  {t('AI Score')}
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                  Status
+                  {t('Status')}
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                  Applied Date
+                  {t('Applied Date')}
                 </th>
                 <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
-                  Actions
+                  {t('Actions')}
                 </th>
               </tr>
             </thead>
@@ -171,7 +192,7 @@ export function ApplicationsTable() {
                         </span>
                       </div>
                     ) : (
-                      <span className="text-sm text-muted-foreground">Not Screened</span>
+                      <span className="text-sm text-muted-foreground">{t('Not Screened')}</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm">
@@ -180,7 +201,7 @@ export function ApplicationsTable() {
                         app.status
                       )}`}
                     >
-                      {app.status}
+                      {t(app.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">
@@ -195,7 +216,7 @@ export function ApplicationsTable() {
                         onClick={(e) => handleOpenScreenModal(app.id, e)}
                       >
                         <ScanSearch className="w-3.5 h-3.5" />
-                        Screen
+                        {t('Screen')}
                       </Button>
                       <Link href={`/dashboard/applications/${app.id}`}>
                         <Button
@@ -203,7 +224,7 @@ export function ApplicationsTable() {
                           variant="outline"
                           className="h-8 gap-1"
                         >
-                          View
+                          {t('View')}
                         </Button>
                       </Link>
                       <button className="p-1 hover:bg-secondary rounded-lg transition-colors">
