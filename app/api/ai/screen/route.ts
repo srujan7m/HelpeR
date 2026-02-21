@@ -5,6 +5,16 @@ import { apiResponse, apiError, withErrorHandler } from '@/lib/api-utils'
 import { screenResume } from '@/lib/ai'
 import { screenResumeSchema } from '@/lib/validations'
 import { logger } from '@/lib/logger'
+import type { ApplicationStatus } from '@prisma/client'
+
+function getEligibilityStatus(aiScore: { overallScore?: number; recommendation?: string }): ApplicationStatus {
+    const recommendation = aiScore.recommendation || ''
+    const overallScore = aiScore.overallScore || 0
+    const isEligibleRecommendation = ['STRONG_YES', 'YES', 'MAYBE'].includes(recommendation)
+    const isEligibleScore = overallScore >= 60
+
+    return isEligibleRecommendation || isEligibleScore ? 'SHORTLISTED' : 'REJECTED'
+}
 
 async function handlePOST(req: NextRequest) {
     const session = await requireRole('HR')
@@ -42,6 +52,7 @@ async function handlePOST(req: NextRequest) {
         where: { id: applicationId },
         data: {
             aiScore: aiScore as any,
+            status: getEligibilityStatus(aiScore),
         },
         include: {
             job: true,

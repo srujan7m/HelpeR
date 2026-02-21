@@ -29,9 +29,22 @@ export default function OnboardingPage() {
 
             if (result.success) {
                 toast.success('Profile updated successfully!')
-                // Force a reload to refresh the session token with new metadata
-                await user?.reload()
-                router.push('/dashboard')
+                // Metadata sync can be slightly delayed; retry before navigating.
+                let synced = false
+                for (let attempt = 0; attempt < 5; attempt++) {
+                    await user?.reload()
+                    if (user?.publicMetadata?.onboarding_complete === true) {
+                        synced = true
+                        break
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 350))
+                }
+
+                if (!synced && typeof window !== 'undefined') {
+                    sessionStorage.setItem('onboarding_complete_pending_at', String(Date.now()))
+                }
+
+                router.replace('/dashboard')
                 router.refresh()
             } else {
                 throw new Error(result.error || 'Failed to update profile')

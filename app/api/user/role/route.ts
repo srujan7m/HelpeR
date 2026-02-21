@@ -28,16 +28,41 @@ export async function POST(req: NextRequest) {
             return sendError(new Error('Email not found in Clerk profile'), 400)
         }
 
-        const dbUser = await prisma.user.upsert({
+        const name = `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim()
+
+        const existingByClerkId = await prisma.user.findUnique({
             where: { clerkId: userId },
-            update: { role },
-            create: {
-                clerkId: userId,
-                email,
-                name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim(),
-                role,
-            },
+            select: { id: true },
         })
+
+        let dbUser
+        if (existingByClerkId) {
+            dbUser = await prisma.user.update({
+                where: { clerkId: userId },
+                data: { role, email, name },
+            })
+        } else {
+            const existingByEmail = await prisma.user.findUnique({
+                where: { email },
+                select: { id: true },
+            })
+
+            if (existingByEmail) {
+                dbUser = await prisma.user.update({
+                    where: { email },
+                    data: { clerkId: userId, role, name },
+                })
+            } else {
+                dbUser = await prisma.user.create({
+                    data: {
+                        clerkId: userId,
+                        email,
+                        name,
+                        role,
+                    },
+                })
+            }
+        }
 
         // 2. Update Clerk Metadata
         // This allows middleware to access the role without hitting the DB

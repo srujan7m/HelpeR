@@ -79,15 +79,40 @@ export async function PATCH(req: NextRequest) {
   const email = claimEmail ?? `${userId}@clerk.local`
 
   try {
-    await prisma.user.upsert({
+    const existingByClerkId = await prisma.user.findUnique({
       where: { clerkId: userId },
-      update: { language: normalizedLanguage },
-      create: {
-        clerkId: userId,
-        email,
-        language: normalizedLanguage,
-      },
+      select: { id: true },
     })
+
+    if (existingByClerkId) {
+      await prisma.user.update({
+        where: { clerkId: userId },
+        data: { language: normalizedLanguage },
+      })
+    } else {
+      const existingByEmail = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true },
+      })
+
+      if (existingByEmail) {
+        await prisma.user.update({
+          where: { email },
+          data: {
+            clerkId: userId,
+            language: normalizedLanguage,
+          },
+        })
+      } else {
+        await prisma.user.create({
+          data: {
+            clerkId: userId,
+            email,
+            language: normalizedLanguage,
+          },
+        })
+      }
+    }
   } catch (error) {
     if (!hasLoggedLanguageWriteFailure) {
       hasLoggedLanguageWriteFailure = true

@@ -18,7 +18,14 @@ const applicationSchema = z.object({
         (files) => files.length === 1,
         'Resume is required'
     ).refine(
-        (files) => files[0]?.type === 'application/pdf',
+        (files) => {
+            const selectedFile = files[0]
+            if (!selectedFile) return false
+            return (
+                selectedFile.type === 'application/pdf' ||
+                selectedFile.name.toLowerCase().endsWith('.pdf')
+            )
+        },
         'Only PDF files are allowed'
     ).refine(
         (files) => files[0]?.size <= 5 * 1024 * 1024,

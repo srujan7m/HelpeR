@@ -102,7 +102,8 @@ export default function MeetingPage() {
             socket.emit('audio-chunk', {
                 meetingId,
                 userId: user?.id,
-                audioChunk: chunk
+                audioChunk: chunk,
+                audioMimeType: chunk.type || 'audio/webm'
             })
         }
     })

@@ -20,21 +20,35 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
             }
 
             const onboardingComplete = user.publicMetadata?.onboarding_complete === true
+            const pendingOnboardingTimestamp =
+                typeof window !== 'undefined'
+                    ? Number(sessionStorage.getItem('onboarding_complete_pending_at') || 0)
+                    : 0
+            const withinPendingWindow =
+                pendingOnboardingTimestamp > 0 && Date.now() - pendingOnboardingTimestamp < 60000
 
             // If onboarding is NOT complete
             if (!onboardingComplete) {
+                // Allow temporary pass-through while metadata propagation catches up.
+                if (withinPendingWindow && !pathname.startsWith('/onboarding')) {
+                    setChecking(false)
+                    return
+                }
                 // If they are not on onboarding page, redirect
                 if (!pathname.startsWith('/onboarding')) {
-                    router.push('/onboarding')
+                    router.replace('/onboarding')
                 } else {
                     setChecking(false)
                 }
             }
             // If onboarding IS complete
             else {
+                if (typeof window !== 'undefined') {
+                    sessionStorage.removeItem('onboarding_complete_pending_at')
+                }
                 // If they are on onboarding page, redirect to dashboard
                 if (pathname.startsWith('/onboarding')) {
-                    router.push('/dashboard')
+                    router.replace('/dashboard')
                 } else {
                     setChecking(false)
                 }

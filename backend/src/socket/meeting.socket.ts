@@ -47,7 +47,7 @@ export function setupMeetingSocket(io: Server) {
             }
         });
 
-        socket.on('audio-chunk', async ({ meetingId, userId, audioChunk }) => {
+        socket.on('audio-chunk', async ({ meetingId, userId, audioChunk, audioMimeType }) => {
             if (!meetingId || !userId || !audioChunk) return;
 
             try {
@@ -56,7 +56,7 @@ export function setupMeetingSocket(io: Server) {
 
                 // Transcribe
                 // Note: We might want to accumulate chunks or silence detection for better quality
-                const text = await speechProvider.transcribe(buffer);
+                const text = await speechProvider.transcribe(buffer, audioMimeType);
 
                 if (text && text.trim().length > 0) {
                     console.log(`Transcript from ${userId}: ${text}`);

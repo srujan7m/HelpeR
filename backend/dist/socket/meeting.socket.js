@@ -53,7 +53,7 @@ function setupMeetingSocket(io) {
                 });
             }
         }));
-        socket.on('audio-chunk', (_a) => __awaiter(this, [_a], void 0, function* ({ meetingId, userId, audioChunk }) {
+        socket.on('audio-chunk', (_a) => __awaiter(this, [_a], void 0, function* ({ meetingId, userId, audioChunk, audioMimeType }) {
             if (!meetingId || !userId || !audioChunk)
                 return;
             try {
@@ -61,7 +61,7 @@ function setupMeetingSocket(io) {
                 const buffer = Buffer.from(audioChunk);
                 // Transcribe
                 // Note: We might want to accumulate chunks or silence detection for better quality
-                const text = yield speechProvider.transcribe(buffer);
+                const text = yield speechProvider.transcribe(buffer, audioMimeType);
                 if (text && text.trim().length > 0) {
                     console.log(`Transcript from ${userId}: ${text}`);
                     // Save to DB
